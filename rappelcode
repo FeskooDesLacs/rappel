@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste de rappels</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        div {
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Liste de rappels</h1>
+    <div>
+        <label for="rappelInput">Ajouter un rappel (limite de 60 caractères) :</label>
+        <input type="text" id="rappelInput" maxlength="60">
+    </div>
+    <div>
+        <label for="dateFinInput">Date et heure de fin du rappel :</label>
+        <input type="datetime-local" id="dateFinInput">
+    </div>
+    <div>
+        <button onclick="ajouterRappel()">Ajouter</button>
+    </div>
+    <div>
+        <h2>Rappels :</h2>
+        <ul id="listeRappels"></ul>
+    </div>
+
+    <script>
+        function ajouterRappel() {
+            const rappelInput = document.getElementById("rappelInput");
+            const dateFinInput = document.getElementById("dateFinInput");
+            const rappelText = rappelInput.value.trim();
+            const dateFin = new Date(dateFinInput.value);
+
+            if (rappelText.length > 0 && !isNaN(dateFin.getTime())) {
+                const listeRappels = document.getElementById("listeRappels");
+                const listItem = document.createElement("li");
+                const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+                const dateFinFormattee = dateFin.toLocaleDateString('fr-FR', options);
+                listItem.textContent = `${rappelText} (Date de fin: ${dateFinFormattee})`;
+                listeRappels.appendChild(listItem);
+
+                // Efface le texte dans les inputs après avoir ajouté le rappel
+                rappelInput.value = "";
+                dateFinInput.value = "";
+
+                // Planifier la notification du navigateur
+                const maintenant = new Date().getTime();
+                const tempsRestant = dateFin - maintenant;
+
+                if (tempsRestant > 0) {
+                    setTimeout(() => {
+                        afficherNotification(rappelText);
+                    }, tempsRestant);
+                }
+            }
+        }
+
+        function afficherNotification(message) {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission === 'granted') {
+                        new Notification('Rappel', {
+                            body: message,
+                            icon: 'favicon.png' // Vous pouvez spécifier une icône personnalisée ici
+                        });
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
